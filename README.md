@@ -2,9 +2,12 @@
 Spring_CVE_2022_22947:Spring Cloud Gateway现高风险漏洞cve,poc漏洞利用,一键利用,开箱即用
 ![image](https://user-images.githubusercontent.com/53851034/156614534-ec365420-9bca-4236-a10e-98fc7ed71d43.png)
 
-漏洞描述 ： 
-### Spring Cloud Gateway是Spring中的一个API网关。其3.1.0及3.0.6版本（包含）以前存在一处SpEL表达式注入漏洞，当攻击者可以访问Actuator API的情况下，将可以利用该漏洞执行任意命令。 
-# 影  :    响范围 :
+漏洞描述 ：#####
+#漏洞
+漏洞描述：#####
+### Spring Cloud Gateway Spring中API网关攻击。3.1.0及3.0.6版本（包含）之前存在SpEL表达式的插件，当开发者可以利用Actuator API的执行情况下，将是该漏洞的命令选项。
+漏洞描述：#####
+# 影  响范围 :
 ## Spring Cloud Gateway以下版本均受影响：
 
     3.1.0
@@ -20,6 +23,16 @@ Spring_CVE_2022_22947:Spring Cloud Gateway现高风险漏洞cve,poc漏洞利用,
 CVE-2022-22946：HTTP2 不安全的 TrustManager :
 
 严重性 ： Medium 
+
+
+![image-20220303141049270](https://user-images.githubusercontent.com/53851034/156614983-1471d8b7-89b5-4e8d-8d5b-a451089a44e9.png)
+
+
+
+###
+
+
+
 
 
 # ::p oc :
