@@ -35,10 +35,12 @@ CVE-2022-22946：HTTP2 不安全的 TrustManager :
 
 
 
-# ::p oc :
+# poc漏洞利用:
+
+### 来自白帽汇:
 
 
-‘’‘POST /actuator/gateway/routes/new_route HTTP/1.1    
+POST /actuator/gateway/routes/new_route HTTP/1.1    
 
    Host: 127.0.0.1:9000
 
@@ -115,3 +117,24 @@ Content-Length: 258
  "order": 0
 
 }
+
+### 简单说明一下：第一个请求将创建路由；第二个命令强制重新加载配置。并且，在路由的重新加载时，将会执行SpEL表达式。
+
+# 利用方法:
+https://nosec.org/avatar/uploads/attach/image/dda4a464204ce2a90307042d714db1d6/1.png![image](https://user-images.githubusercontent.com/53851034/156773508-42684d14-2f07-48e0-a41e-84b2997639d5.png)
+
+SimpleEvaluationContext支持SpEL功能的一个子集，一般来说，它比StandardEvaluationContext更加安全。根据Javadocs的说法，“SimpleEvaluationContext只支持SpEL语言语法的一个子集，例如，不包括对Java类型、构造函数和Bean引用的引用。”
+
+当我在研究这个问题时，我看到SpEL的原始需求来自GitHub repo上的一些问题：主要是用户希望实现一个可以通过SpEL表达式调用的自定义bean。一个例子是管理一个路由的速率限制。
+
+当我研究这个补丁的时候，我发现仍然可以调用没有方法参数的Bean——这意味着#{@gatewayProperties.toString}可以被用来打印出gatewayPropertiesBean的定义。而SimpleEvaluationContext是不允许调用#{@gatewayProperties.setRoutes(..)}的。这在本质上应该只限制getter方法被调用。
+
+#### 或者:
+
+在使用添加和刷新路由所需的两个HTTP请求发送#{@gatewayproperties.tostring}后，可以看到上图所示内容。请注意，一些内部信息可能会遭到泄漏。根据可用的Bean，这可能被用来泄漏应用程序状态的属性或其他属性。
+
+虽然网关服务不用对类路径中包含的bean负责，但它至少应该确保它的库中的bean不会被调用，从而导致泄漏重要信息或对应用程序产生负面影响。
+
+最后，我编写了更多的CodeQL查询，看看会发生什么情况。简单来说，我想在库中找到所有不带参数的方法的bean。然后，递归地查看返回类型，看看是否有任何没有参数的方法可以调用。这些查询看起来类似于bean1.method1.method2这个样子。
+
+
