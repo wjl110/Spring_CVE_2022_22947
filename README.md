@@ -38,7 +38,7 @@ CVE-2022-22946：HTTP2 不安全的 TrustManager :
 # poc漏洞利用:
 
 ### 来自白帽汇:
-
+#### 使用方法:burpsuite改包发送
 
 POST /actuator/gateway/routes/new_route HTTP/1.1    
 
@@ -121,7 +121,10 @@ Content-Length: 258
 ### 简单说明一下：第一个请求将创建路由；第二个命令强制重新加载配置。并且，在路由的重新加载时，将会执行SpEL表达式。
 
 # 利用方法:
-https://nosec.org/avatar/uploads/attach/image/dda4a464204ce2a90307042d714db1d6/1.png![image](https://user-images.githubusercontent.com/53851034/156773508-42684d14-2f07-48e0-a41e-84b2997639d5.png)
+
+
+![image](https://user-images.githubusercontent.com/53851034/156774162-2db9bafc-c5d1-4046-9c72-e79649b76d86.png)
+
 
 SimpleEvaluationContext支持SpEL功能的一个子集，一般来说，它比StandardEvaluationContext更加安全。根据Javadocs的说法，“SimpleEvaluationContext只支持SpEL语言语法的一个子集，例如，不包括对Java类型、构造函数和Bean引用的引用。”
 
